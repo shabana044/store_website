@@ -10,6 +10,10 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminProducts from './pages/AdminProducts';
 import AdminOrders from './pages/AdminOrders';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Account from './pages/Account';
+import Wishlist from './pages/Wishlist';
 function App() {
   return (
     <>
@@ -27,6 +31,10 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/login" element={<Login />} />
+<Route path="/signup" element={<Signup />} />
+<Route path="/account" element={<Account />} />
+<Route path="/wishlist" element={<Wishlist />} />
         </Routes>
       </main>
     </>

@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useCart } from '../context/CartContext';
 
 function ProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
+  const [wishlistId, setWishlistId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [addedMessage, setAddedMessage] = useState('');
 
   useEffect(() => {
     fetchProduct();
+    checkWishlist();
   }, [id]);
 
   async function fetchProduct() {
@@ -32,6 +36,73 @@ function ProductDetails() {
     }
 
     setLoading(false);
+  }
+
+  async function checkWishlist() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('wishlists')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('product_id', id)
+      .maybeSingle();
+
+    if (data) {
+      setWishlistId(data.id);
+    } else {
+      setWishlistId(null);
+    }
+  }
+
+  async function toggleWishlist() {
+    setWishlistLoading(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setWishlistLoading(false);
+      navigate('/login');
+      return;
+    }
+
+    if (wishlistId) {
+      const { error } = await supabase
+        .from('wishlists')
+        .delete()
+        .eq('id', wishlistId);
+
+      if (error) {
+        alert(error.message);
+      } else {
+        setWishlistId(null);
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('wishlists')
+        .insert([
+          {
+            user_id: user.id,
+            product_id: id,
+          },
+        ])
+        .select('id')
+        .single();
+
+      if (error) {
+        alert(error.message);
+      } else {
+        setWishlistId(data.id);
+      }
+    }
+
+    setWishlistLoading(false);
   }
 
   function handleAddToCart() {
@@ -96,17 +167,33 @@ function ProductDetails() {
 
             <div>
               <span>Stock</span>
-              <strong>{product.stock > 0 ? `${product.stock} available` : 'Out of stock'}</strong>
+              <strong>
+                {product.stock > 0 ? `${product.stock} available` : 'Out of stock'}
+              </strong>
             </div>
           </div>
 
-          <button
-            className="primary-btn details-cart-btn"
-            onClick={handleAddToCart}
-            disabled={product.stock <= 0}
-          >
-            {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-          </button>
+          <div className="details-actions">
+            <button
+              className="primary-btn details-cart-btn"
+              onClick={handleAddToCart}
+              disabled={product.stock <= 0}
+            >
+              {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+            </button>
+
+            <button
+              className={wishlistId ? 'wishlist-btn active-wishlist' : 'wishlist-btn'}
+              onClick={toggleWishlist}
+              disabled={wishlistLoading}
+            >
+              {wishlistLoading
+                ? 'Saving...'
+                : wishlistId
+                ? '♥ Remove Wishlist'
+                : '♡ Add Wishlist'}
+            </button>
+          </div>
 
           {addedMessage && <p className="success-text">{addedMessage}</p>}
         </div>

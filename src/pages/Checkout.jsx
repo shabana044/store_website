@@ -1,10 +1,13 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useCart } from '../context/CartContext';
 
 function Checkout() {
+  const navigate = useNavigate();
   const { cartItems, totalPrice, clearCart } = useCart();
+
+  const [checkingUser, setCheckingUser] = useState(true);
 
   const [formData, setFormData] = useState({
     customerName: '',
@@ -15,6 +18,23 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  async function checkUser() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setCheckingUser(false);
+  }
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -42,11 +62,22 @@ function Checkout() {
     setErrorMessage('');
     setSuccessMessage('');
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setLoading(false);
+      navigate('/login');
+      return;
+    }
+
     const orderId = crypto.randomUUID();
 
     const { error: orderError } = await supabase.from('orders').insert([
       {
         id: orderId,
+        user_id: user.id,
         customer_name: formData.customerName,
         phone: formData.phone,
         address: formData.address,
@@ -91,6 +122,10 @@ function Checkout() {
     setLoading(false);
   }
 
+  if (checkingUser) {
+    return <p>Checking login...</p>;
+  }
+
   if (cartItems.length === 0 && !successMessage) {
     return (
       <section>
@@ -118,7 +153,10 @@ function Checkout() {
         <div className="success-box checkout-success">
           <div className="success-icon">✓</div>
           <h3>{successMessage}</h3>
-          <p>Thank you for shopping with Zayna Dresses. Your order is now pending confirmation.</p>
+          <p>
+            Thank you for shopping with Zayna Dresses. Your order is now pending
+            confirmation.
+          </p>
 
           <Link to="/products" className="primary-btn">
             Continue Shopping
@@ -166,7 +204,11 @@ function Checkout() {
 
             {errorMessage && <p className="error-text">{errorMessage}</p>}
 
-            <button className="primary-btn place-order-btn" type="submit" disabled={loading}>
+            <button
+              className="primary-btn place-order-btn"
+              type="submit"
+              disabled={loading}
+            >
               {loading ? 'Placing Order...' : 'Place Order'}
             </button>
           </form>
@@ -178,7 +220,9 @@ function Checkout() {
               <div className="checkout-item" key={item.id}>
                 <div>
                   <p>{item.name}</p>
-                  <small>{item.category} • {item.size}</small>
+                  <small>
+                    {item.category} • {item.size}
+                  </small>
                 </div>
 
                 <span>
