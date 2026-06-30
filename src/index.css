@@ -1731,3 +1731,119 @@ body {
 .products-hero p {
   line-height: 1.7;
 }
+/* ENHANCED CHECKOUT */
+.checkout-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.location-box {
+  background: #fff7f3;
+  border: 1px solid var(--border);
+  padding: 18px;
+  border-radius: 18px;
+  margin-bottom: 22px;
+}
+
+.location-btn {
+  width: fit-content;
+}
+
+.maps-link {
+  display: block;
+  margin-top: 12px;
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.payment-options {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.payment-option {
+  background: #fff7f3;
+  border: 1px solid var(--border);
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.payment-option input {
+  margin: 0;
+}
+
+.upi-box {
+  background: #fff7f3;
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 18px;
+  margin-bottom: 22px;
+}
+
+.upi-box p {
+  margin-bottom: 14px;
+}
+
+.upi-box .secondary-btn {
+  margin-bottom: 18px;
+}
+
+@media (max-width: 768px) {
+  .checkout-two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-options {
+    flex-direction: column;
+  }
+
+  .payment-option {
+    width: 100%;
+  }
+}
+/* ADMIN ORDER DETAILS */
+.admin-order-section {
+  border-top: 1px solid #f0d8d0;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.admin-order-section h4 {
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.admin-address-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+}
+
+.admin-address-grid p,
+.admin-order-section p {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.admin-address-grid strong,
+.admin-order-section strong {
+  color: var(--text);
+}
+
+.admin-map-link {
+  display: inline-block;
+  margin-top: 14px;
+}
+
+@media (max-width: 768px) {
+  .admin-address-grid {
+    grid-template-columns: 1fr;
+  }
+}

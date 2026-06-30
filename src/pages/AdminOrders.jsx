@@ -54,11 +54,17 @@ function AdminOrders() {
 
   return (
     <section>
-      <p className="tagline">Admin Panel</p>
-      <h2>Customer Orders</h2>
+      <div className="products-hero">
+        <p className="tagline">Admin Panel</p>
+        <h2>Customer Orders</h2>
+        <p>View delivery details, payment method, location, and order status.</p>
+      </div>
 
       {orders.length === 0 ? (
-        <p>No orders yet.</p>
+        <div className="empty-products">
+          <h3>No orders yet</h3>
+          <p>Customer orders will appear here.</p>
+        </div>
       ) : (
         <div className="orders-list">
           {orders.map((order) => (
@@ -67,9 +73,10 @@ function AdminOrders() {
                 <div>
                   <h3>{order.customer_name}</h3>
                   <p>Phone: {order.phone}</p>
-                  <p>Address: {order.address}</p>
                   <p>Total: ₹{order.total_price}</p>
-                  <p>Status: <strong>{order.status}</strong></p>
+                  <p>
+                    Status: <strong>{order.status}</strong>
+                  </p>
                 </div>
 
                 <select
@@ -82,6 +89,60 @@ function AdminOrders() {
                   <option value="Delivered">Delivered</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
+              </div>
+
+              <div className="admin-order-section">
+                <h4>Delivery Address</h4>
+
+                <div className="admin-address-grid">
+                  <p>
+                    <strong>House/Flat:</strong> {order.address_line1 || 'Not given'}
+                  </p>
+                  <p>
+                    <strong>Area:</strong> {order.address_line2 || 'Not given'}
+                  </p>
+                  <p>
+                    <strong>City:</strong> {order.city || 'Not given'}
+                  </p>
+                  <p>
+                    <strong>District:</strong> {order.district || 'Not given'}
+                  </p>
+                  <p>
+                    <strong>State:</strong> {order.state || 'Not given'}
+                  </p>
+                  <p>
+                    <strong>Pincode:</strong> {order.pincode || 'Not given'}
+                  </p>
+                  <p>
+                    <strong>Landmark:</strong> {order.landmark || 'Not given'}
+                  </p>
+                </div>
+
+                {order.maps_url && (
+                  <a
+                    href={order.maps_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="maps-link admin-map-link"
+                  >
+                    Open Customer Location in Google Maps
+                  </a>
+                )}
+              </div>
+
+              <div className="admin-order-section">
+                <h4>Payment Details</h4>
+
+                <p>
+                  <strong>Method:</strong> {order.payment_method || 'COD'}
+                </p>
+
+                {order.payment_method === 'UPI' && (
+                  <p>
+                    <strong>UPI Transaction ID:</strong>{' '}
+                    {order.upi_transaction_id || 'Not provided'}
+                  </p>
+                )}
               </div>
 
               <div className="order-items-box">
