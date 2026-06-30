@@ -94,123 +94,110 @@ function Checkout() {
   }
 
   async function handleSubmit(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (cartItems.length === 0) {
-      setErrorMessage('Your cart is empty.');
-      return;
-    }
-
-    if (
-      !formData.customerName ||
-      !formData.phone ||
-      !formData.addressLine1 ||
-      !formData.city ||
-      !formData.district ||
-      !formData.state ||
-      !formData.pincode
-    ) {
-      setErrorMessage('Please fill all required address fields.');
-      return;
-    }
-
-    if (formData.paymentMethod === 'UPI' && !formData.upiTransactionId) {
-      setErrorMessage('Please enter UPI transaction ID after payment.');
-      return;
-    }
-
-    setLoading(true);
-    setErrorMessage('');
-    setSuccessMessage('');
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setLoading(false);
-      navigate('/login');
-      return;
-    }
-
-    const orderId = crypto.randomUUID();
-
-    const fullAddress = `${formData.addressLine1}, ${formData.addressLine2}, ${formData.city}, ${formData.district}, ${formData.state} - ${formData.pincode}. Landmark: ${formData.landmark}`;
-
-    const { error: orderError } = await supabase.from('orders').insert([
-      {
-        id: orderId,
-        user_id: user.id,
-        customer_name: formData.customerName,
-        phone: formData.phone,
-        address: fullAddress,
-        address_line1: formData.addressLine1,
-        address_line2: formData.addressLine2,
-        city: formData.city,
-        district: formData.district,
-        state: formData.state,
-        pincode: formData.pincode,
-        landmark: formData.landmark,
-        latitude: locationData.latitude,
-        longitude: locationData.longitude,
-        maps_url: locationData.mapsUrl,
-        payment_method: formData.paymentMethod,
-        upi_transaction_id:
-          formData.paymentMethod === 'UPI' ? formData.upiTransactionId : null,
-        total_price: totalPrice,
-        status: 'Pending',
-      },
-    ]);
-
-    if (orderError) {
-      setErrorMessage(orderError.message);
-      setLoading(false);
-      return;
-    }
-
-    const orderItems = cartItems.map((item) => ({
-      order_id: orderId,
-      product_id: item.id,
-      product_name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems);
-
-    if (itemsError) {
-      setErrorMessage(itemsError.message);
-      setLoading(false);
-      return;
-    }
-
-    clearCart();
-
-    setFormData({
-      customerName: '',
-      phone: '',
-      addressLine1: '',
-      addressLine2: '',
-      city: '',
-      district: '',
-      state: '',
-      pincode: '',
-      landmark: '',
-      paymentMethod: 'COD',
-      upiTransactionId: '',
-    });
-
-    setLocationData({
-      latitude: null,
-      longitude: null,
-      mapsUrl: '',
-    });
-
-    setSuccessMessage('Order placed successfully ✅');
-    setLoading(false);
+  if (cartItems.length === 0) {
+    setErrorMessage('Your cart is empty.');
+    return;
   }
+
+  if (
+    !formData.customerName ||
+    !formData.phone ||
+    !formData.addressLine1 ||
+    !formData.city ||
+    !formData.district ||
+    !formData.state ||
+    !formData.pincode
+  ) {
+    setErrorMessage('Please fill all required address fields.');
+    return;
+  }
+
+  if (formData.paymentMethod === 'UPI' && !formData.upiTransactionId) {
+    setErrorMessage('Please enter UPI transaction ID after payment.');
+    return;
+  }
+
+  setLoading(true);
+  setErrorMessage('');
+  setSuccessMessage('');
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    setLoading(false);
+    navigate('/login');
+    return;
+  }
+
+  const orderId = crypto.randomUUID();
+
+  const fullAddress = `${formData.addressLine1}, ${formData.addressLine2}, ${formData.city}, ${formData.district}, ${formData.state} - ${formData.pincode}. Landmark: ${formData.landmark}`;
+
+  const orderItems = cartItems.map((item) => ({
+    product_id: item.id,
+    product_name: item.name,
+    quantity: item.quantity,
+    price: item.price,
+  }));
+
+  const { error: orderError } = await supabase.rpc('place_order_with_stock', {
+    p_order_id: orderId,
+    p_user_id: user.id,
+    p_customer_name: formData.customerName,
+    p_phone: formData.phone,
+    p_address: fullAddress,
+    p_address_line1: formData.addressLine1,
+    p_address_line2: formData.addressLine2,
+    p_city: formData.city,
+    p_district: formData.district,
+    p_state: formData.state,
+    p_pincode: formData.pincode,
+    p_landmark: formData.landmark,
+    p_latitude: locationData.latitude,
+    p_longitude: locationData.longitude,
+    p_maps_url: locationData.mapsUrl,
+    p_payment_method: formData.paymentMethod,
+    p_upi_transaction_id:
+      formData.paymentMethod === 'UPI' ? formData.upiTransactionId : null,
+    p_total_price: totalPrice,
+    p_items: orderItems,
+  });
+
+  if (orderError) {
+    setErrorMessage(orderError.message);
+    setLoading(false);
+    return;
+  }
+
+  clearCart();
+
+  setFormData({
+    customerName: '',
+    phone: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    district: '',
+    state: '',
+    pincode: '',
+    landmark: '',
+    paymentMethod: 'COD',
+    upiTransactionId: '',
+  });
+
+  setLocationData({
+    latitude: null,
+    longitude: null,
+    mapsUrl: '',
+  });
+
+  setSuccessMessage('Order placed successfully ✅');
+  setLoading(false);
+}
 
   const upiPaymentLink = `upi://pay?pa=${SHOP_UPI_ID}&pn=${encodeURIComponent(
     SHOP_NAME
