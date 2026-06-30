@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 
 const SHOP_UPI_ID = 'yourupi@bank'; // change this to your real UPI ID
 const SHOP_NAME = 'Zayna Dresses';
-
+const SHOP_WHATSAPP_NUMBER = '919207651300';
 function Checkout() {
   const navigate = useNavigate();
   const { cartItems, totalPrice, clearCart } = useCart();
@@ -37,10 +37,11 @@ function Checkout() {
 const [errorMessage, setErrorMessage] = useState('');
 const [successMessage, setSuccessMessage] = useState('');
 const [placedOrderId, setPlacedOrderId] = useState('');
+const [placedOrderDetails, setPlacedOrderDetails] = useState(null);
 
-  useEffect(() => {
-    checkUser();
-  }, []);
+useEffect(() => {
+  checkUser();
+}, []);
 
   async function checkUser() {
     const {
@@ -175,7 +176,16 @@ const [placedOrderId, setPlacedOrderId] = useState('');
   }
 
 setPlacedOrderId(orderId);
-  clearCart();
+
+setPlacedOrderDetails({
+  orderId,
+  customerName: formData.customerName,
+  phone: formData.phone,
+  totalPrice,
+  paymentMethod: formData.paymentMethod,
+});
+
+clearCart();
 
   setFormData({
     customerName: '',
@@ -204,7 +214,11 @@ setPlacedOrderId(orderId);
   const upiPaymentLink = `upi://pay?pa=${SHOP_UPI_ID}&pn=${encodeURIComponent(
     SHOP_NAME
   )}&am=${totalPrice}&cu=INR`;
+const whatsappMessage = placedOrderDetails
+  ? `Hi ${SHOP_NAME}, I placed an order.%0A%0AOrder ID: ${placedOrderDetails.orderId}%0ACustomer Name: ${placedOrderDetails.customerName}%0APhone: ${placedOrderDetails.phone}%0ATotal: ₹${placedOrderDetails.totalPrice}%0APayment Method: ${placedOrderDetails.paymentMethod}%0A%0APlease confirm my order.`
+  : '';
 
+const whatsappLink = `https://wa.me/${SHOP_WHATSAPP_NUMBER}?text=${whatsappMessage}`;
   if (checkingUser) {
     return <p>Checking login...</p>;
   }
@@ -245,7 +259,16 @@ setPlacedOrderId(orderId);
     Order ID: <strong>{placedOrderId}</strong>
   </p>
 )}
-
+{placedOrderDetails && (
+  <a
+    href={whatsappLink}
+    target="_blank"
+    rel="noreferrer"
+    className="whatsapp-btn"
+  >
+    Send confirmation on WhatsApp
+  </a>
+)}
           <Link to="/products" className="primary-btn">
             Continue Shopping
           </Link>
