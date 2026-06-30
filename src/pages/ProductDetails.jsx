@@ -149,6 +149,15 @@ function ProductDetails() {
           <h2>{product.name}</h2>
 
           <p className="details-price">₹{product.price}</p>
+          <span
+  className={
+    product.stock > 0
+      ? 'details-stock-badge in-stock-badge'
+      : 'details-stock-badge out-stock-badge'
+  }
+>
+  {product.stock > 0 ? `${product.stock} In Stock` : 'Out of Stock'}
+</span>
 
           <p className="details-description">
             {product.description || 'A beautiful dress from our boutique collection.'}
