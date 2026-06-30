@@ -1928,3 +1928,18 @@ body {
   font-size: 14px;
   font-weight: 900;
 }
+/* ORDER ID BOX */
+.order-id-box {
+  background: #fff7f3;
+  border: 1px dashed var(--primary);
+  padding: 14px 18px;
+  border-radius: 16px;
+  margin: 18px 0;
+  font-size: 14px;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.order-id-box strong {
+  color: var(--primary);
+}

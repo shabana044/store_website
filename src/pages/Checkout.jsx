@@ -34,8 +34,9 @@ function Checkout() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+const [errorMessage, setErrorMessage] = useState('');
+const [successMessage, setSuccessMessage] = useState('');
+const [placedOrderId, setPlacedOrderId] = useState('');
 
   useEffect(() => {
     checkUser();
@@ -173,6 +174,7 @@ function Checkout() {
     return;
   }
 
+setPlacedOrderId(orderId);
   clearCart();
 
   setFormData({
@@ -238,6 +240,11 @@ function Checkout() {
             Thank you for shopping with Zayna Dresses. Your order is now pending
             confirmation.
           </p>
+          {placedOrderId && (
+  <p className="order-id-box">
+    Order ID: <strong>{placedOrderId}</strong>
+  </p>
+)}
 
           <Link to="/products" className="primary-btn">
             Continue Shopping
