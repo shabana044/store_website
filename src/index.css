@@ -1999,3 +1999,42 @@ body {
     width: 100%;
   }
 }
+/* ADMIN ORDER FILTERS */
+.admin-order-filters {
+  background: white;
+  padding: 22px;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 14px;
+  margin: 24px 0 14px;
+}
+
+.admin-order-filters input,
+.admin-order-filters select {
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fffaf7;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.admin-order-filters input:focus,
+.admin-order-filters select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.admin-order-count {
+  margin-bottom: 18px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .admin-order-filters {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,6 +3,9 @@ import { supabase } from '../lib/supabaseClient';
 
 function AdminOrders() {
   const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [paymentFilter, setPaymentFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -44,6 +47,23 @@ function AdminOrders() {
     fetchOrders();
   }
 
+  const filteredOrders = orders.filter((order) => {
+    const search = searchTerm.toLowerCase();
+
+    const matchesSearch =
+      order.id?.toLowerCase().includes(search) ||
+      order.customer_name?.toLowerCase().includes(search) ||
+      order.phone?.toLowerCase().includes(search);
+
+    const matchesStatus =
+      statusFilter === 'All' || order.status === statusFilter;
+
+    const matchesPayment =
+      paymentFilter === 'All' || order.payment_method === paymentFilter;
+
+    return matchesSearch && matchesStatus && matchesPayment;
+  });
+
   if (loading) {
     return <p>Loading orders...</p>;
   }
@@ -57,21 +77,58 @@ function AdminOrders() {
       <div className="products-hero">
         <p className="tagline">Admin Panel</p>
         <h2>Customer Orders</h2>
-        <p>View delivery details, payment method, location, and order status.</p>
+        <p>Search orders and filter by status or payment method.</p>
       </div>
 
-      {orders.length === 0 ? (
+      <div className="admin-order-filters">
+        <input
+          type="text"
+          placeholder="Search by customer name, phone, or order ID"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="All">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+
+        <select
+          value={paymentFilter}
+          onChange={(e) => setPaymentFilter(e.target.value)}
+        >
+          <option value="All">All Payments</option>
+          <option value="COD">COD</option>
+          <option value="UPI">UPI</option>
+        </select>
+      </div>
+
+      <p className="admin-order-count">
+        Showing {filteredOrders.length} of {orders.length} orders
+      </p>
+
+      {filteredOrders.length === 0 ? (
         <div className="empty-products">
-          <h3>No orders yet</h3>
-          <p>Customer orders will appear here.</p>
+          <h3>No matching orders</h3>
+          <p>Try changing the search or filter.</p>
         </div>
       ) : (
         <div className="orders-list">
-          {orders.map((order) => (
+          {filteredOrders.map((order) => (
             <div className="order-card" key={order.id}>
               <div className="order-top">
                 <div>
                   <h3>{order.customer_name}</h3>
+                  <p>
+                    Order ID: <strong>{order.id}</strong>
+                  </p>
                   <p>Phone: {order.phone}</p>
                   <p>Total: ₹{order.total_price}</p>
                   <p>
@@ -96,10 +153,12 @@ function AdminOrders() {
 
                 <div className="admin-address-grid">
                   <p>
-                    <strong>House/Flat:</strong> {order.address_line1 || 'Not given'}
+                    <strong>House/Flat:</strong>{' '}
+                    {order.address_line1 || 'Not given'}
                   </p>
                   <p>
-                    <strong>Area:</strong> {order.address_line2 || 'Not given'}
+                    <strong>Area:</strong>{' '}
+                    {order.address_line2 || 'Not given'}
                   </p>
                   <p>
                     <strong>City:</strong> {order.city || 'Not given'}
