@@ -11,6 +11,14 @@ function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [wishlistId, setWishlistId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const [reviews, setReviews] = useState([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState('');
+
   const [loading, setLoading] = useState(true);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -19,6 +27,8 @@ function ProductDetails() {
   useEffect(() => {
     fetchProduct();
     checkWishlist();
+    fetchReviews();
+    getCurrentUserAndReview();
     window.scrollTo(0, 0);
   }, [id]);
 
@@ -55,6 +65,40 @@ function ProductDetails() {
 
     if (!error) {
       setRelatedProducts(data || []);
+    }
+  }
+
+  async function getCurrentUserAndReview() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    setCurrentUser(user);
+
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('product_reviews')
+      .select('*')
+      .eq('product_id', id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (data) {
+      setReviewRating(data.rating);
+      setReviewText(data.review_text || '');
+    }
+  }
+
+  async function fetchReviews() {
+    const { data, error } = await supabase
+      .from('product_reviews')
+      .select('*')
+      .eq('product_id', id)
+      .order('created_at', { ascending: false });
+
+    if (!error) {
+      setReviews(data || []);
     }
   }
 
@@ -135,6 +179,55 @@ function ProductDetails() {
     }, 2000);
   }
 
+  async function handleReviewSubmit(e) {
+    e.preventDefault();
+
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    if (!reviewRating) {
+      setReviewMessage('Please select a rating.');
+      return;
+    }
+
+    setReviewLoading(true);
+    setReviewMessage('');
+
+    const { error } = await supabase.from('product_reviews').upsert(
+      [
+        {
+          product_id: id,
+          user_id: currentUser.id,
+          rating: Number(reviewRating),
+          review_text: reviewText,
+        },
+      ],
+      {
+        onConflict: 'product_id,user_id',
+      }
+    );
+
+    if (error) {
+      setReviewMessage(error.message);
+      setReviewLoading(false);
+      return;
+    }
+
+    setReviewMessage('Review saved successfully ✅');
+    fetchReviews();
+    setReviewLoading(false);
+  }
+
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((total, review) => total + Number(review.rating), 0) /
+          reviews.length
+        ).toFixed(1)
+      : null;
+
   if (loading) {
     return <p>Loading product...</p>;
   }
@@ -168,6 +261,13 @@ function ProductDetails() {
           <p className="details-badge">{product.category}</p>
 
           <h2>{product.name}</h2>
+
+          {averageRating && (
+            <p className="average-rating">
+              ⭐ {averageRating} / 5 based on {reviews.length} review
+              {reviews.length > 1 ? 's' : ''}
+            </p>
+          )}
 
           <p className="details-price">₹{product.price}</p>
 
@@ -232,6 +332,82 @@ function ProductDetails() {
           </div>
 
           {addedMessage && <p className="success-text">{addedMessage}</p>}
+        </div>
+      </div>
+
+      <div className="reviews-section">
+        <div className="section-header">
+          <p className="tagline">Customer Reviews</p>
+          <h2>Reviews & Ratings</h2>
+        </div>
+
+        <div className="reviews-layout">
+          <form className="review-form" onSubmit={handleReviewSubmit}>
+            <h3>Write a Review</h3>
+
+            {!currentUser && (
+              <p>
+                Please <Link to="/login">login</Link> to write a review.
+              </p>
+            )}
+
+            <label>
+              Rating
+              <select
+                value={reviewRating}
+                onChange={(e) => setReviewRating(e.target.value)}
+              >
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+              </select>
+            </label>
+
+            <label>
+              Review
+              <textarea
+                rows="4"
+                placeholder="Share your thoughts about this dress..."
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+              />
+            </label>
+
+            {reviewMessage && <p className="success-text">{reviewMessage}</p>}
+
+            <button
+              type="submit"
+              className="primary-btn"
+              disabled={reviewLoading}
+            >
+              {reviewLoading ? 'Saving...' : 'Save Review'}
+            </button>
+          </form>
+
+          <div className="reviews-list">
+            {reviews.length === 0 ? (
+              <div className="empty-products">
+                <h3>No reviews yet</h3>
+                <p>Be the first to review this dress.</p>
+              </div>
+            ) : (
+              reviews.map((review) => (
+                <div className="review-card" key={review.id}>
+                  <p className="review-stars">
+                    {'⭐'.repeat(Number(review.rating))}
+                  </p>
+
+                  <p>{review.review_text || 'No written review.'}</p>
+
+                  <small>
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </small>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
