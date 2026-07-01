@@ -9,6 +9,7 @@ function ProductDetails() {
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [wishlistId, setWishlistId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [wishlistLoading, setWishlistLoading] = useState(false);
@@ -18,10 +19,12 @@ function ProductDetails() {
   useEffect(() => {
     fetchProduct();
     checkWishlist();
+    window.scrollTo(0, 0);
   }, [id]);
 
   async function fetchProduct() {
     setLoading(true);
+    setErrorMessage('');
 
     const { data, error } = await supabase
       .from('products')
@@ -31,11 +34,28 @@ function ProductDetails() {
 
     if (error) {
       setErrorMessage(error.message);
-    } else {
-      setProduct(data);
+      setLoading(false);
+      return;
     }
 
+    setProduct(data);
+    fetchRelatedProducts(data.category, data.id);
     setLoading(false);
+  }
+
+  async function fetchRelatedProducts(category, productId) {
+    if (!category) return;
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('category', category)
+      .neq('id', productId)
+      .limit(4);
+
+    if (!error) {
+      setRelatedProducts(data || []);
+    }
   }
 
   async function checkWishlist() {
@@ -106,14 +126,15 @@ function ProductDetails() {
   }
 
   function handleAddToCart() {
-  const result = addToCart(product);
+    const result = addToCart(product);
 
-  setAddedMessage(result.message);
+    setAddedMessage(result.message);
 
-  setTimeout(() => {
-    setAddedMessage('');
-  }, 2000);
-}
+    setTimeout(() => {
+      setAddedMessage('');
+    }, 2000);
+  }
+
   if (loading) {
     return <p>Loading product...</p>;
   }
@@ -149,18 +170,20 @@ function ProductDetails() {
           <h2>{product.name}</h2>
 
           <p className="details-price">₹{product.price}</p>
+
           <span
-  className={
-    product.stock > 0
-      ? 'details-stock-badge in-stock-badge'
-      : 'details-stock-badge out-stock-badge'
-  }
->
-  {product.stock > 0 ? `${product.stock} In Stock` : 'Out of Stock'}
-</span>
+            className={
+              product.stock > 0
+                ? 'details-stock-badge in-stock-badge'
+                : 'details-stock-badge out-stock-badge'
+            }
+          >
+            {product.stock > 0 ? `${product.stock} In Stock` : 'Out of Stock'}
+          </span>
 
           <p className="details-description">
-            {product.description || 'A beautiful dress from our boutique collection.'}
+            {product.description ||
+              'A beautiful dress from our boutique collection.'}
           </p>
 
           <div className="details-meta-grid">
@@ -177,7 +200,9 @@ function ProductDetails() {
             <div>
               <span>Stock</span>
               <strong>
-                {product.stock > 0 ? `${product.stock} available` : 'Out of stock'}
+                {product.stock > 0
+                  ? `${product.stock} available`
+                  : 'Out of stock'}
               </strong>
             </div>
           </div>
@@ -192,7 +217,9 @@ function ProductDetails() {
             </button>
 
             <button
-              className={wishlistId ? 'wishlist-btn active-wishlist' : 'wishlist-btn'}
+              className={
+                wishlistId ? 'wishlist-btn active-wishlist' : 'wishlist-btn'
+              }
               onClick={toggleWishlist}
               disabled={wishlistLoading}
             >
@@ -207,6 +234,55 @@ function ProductDetails() {
           {addedMessage && <p className="success-text">{addedMessage}</p>}
         </div>
       </div>
+
+      {relatedProducts.length > 0 && (
+        <div className="related-products-section">
+          <div className="section-header">
+            <p className="tagline">You May Also Like</p>
+            <h2>Related Dresses</h2>
+          </div>
+
+          <div className="product-grid">
+            {relatedProducts.map((related) => (
+              <div className="product-card" key={related.id}>
+                <div className="product-image-wrap">
+                  {related.image_url ? (
+                    <img src={related.image_url} alt={related.name} />
+                  ) : (
+                    <div className="product-placeholder">
+                      {related.name.charAt(0)}
+                    </div>
+                  )}
+
+                  <span
+                    className={
+                      related.stock > 0
+                        ? 'stock-badge in-stock-badge'
+                        : 'stock-badge out-stock-badge'
+                    }
+                  >
+                    {related.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                </div>
+
+                <div className="product-info">
+                  <p className="product-category">{related.category}</p>
+                  <h3>{related.name}</h3>
+                  <p className="product-price">₹{related.price}</p>
+
+                  <p className="product-meta">
+                    Size: {related.size} • Color: {related.color}
+                  </p>
+
+                  <Link to={`/products/${related.id}`} className="small-btn">
+                    View Details
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -2262,3 +2262,15 @@ body {
   font-weight: 800;
   margin-top: 14px;
 }
+/* RELATED PRODUCTS */
+.related-products-section {
+  margin-top: 56px;
+}
+
+.related-products-section .section-header {
+  background: rgba(255, 255, 255, 0.75);
+  padding: 30px;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 28px;
+}
