@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
@@ -10,7 +11,21 @@ function Cart() {
     totalPrice,
   } = useCart();
 
+  const [cartMessage, setCartMessage] = useState('');
+
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+  function handleIncrease(productId) {
+    const result = increaseQuantity(productId);
+
+    if (result && !result.success) {
+      setCartMessage(result.message);
+
+      setTimeout(() => {
+        setCartMessage('');
+      }, 2500);
+    }
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -35,40 +50,65 @@ function Cart() {
         <p>Review your selected dresses before checkout.</p>
       </div>
 
+      {cartMessage && <p className="cart-warning">{cartMessage}</p>}
+
       <div className="cart-layout">
         <div className="cart-items">
-          {cartItems.map((item) => (
-            <div className="cart-item" key={item.id}>
-              <div className="cart-image">
-                {item.image_url ? (
-                  <img src={item.image_url} alt={item.name} />
-                ) : (
-                  <div className="cart-placeholder">{item.name.charAt(0)}</div>
-                )}
-              </div>
+          {cartItems.map((item) => {
+            const stock = Number(item.stock) || 0;
+            const reachedMaxStock = item.quantity >= stock;
 
-              <div className="cart-details">
-                <p className="product-category">{item.category}</p>
-                <h3>{item.name}</h3>
-                <p className="cart-item-price">₹{item.price}</p>
-                <p>Size: {item.size}</p>
-                <p>Color: {item.color}</p>
-
-                <div className="quantity-controls">
-                  <button onClick={() => decreaseQuantity(item.id)}>-</button>
-                  <span>{item.quantity}</span>
-                  <button onClick={() => increaseQuantity(item.id)}>+</button>
+            return (
+              <div className="cart-item" key={item.id}>
+                <div className="cart-image">
+                  {item.image_url ? (
+                    <img src={item.image_url} alt={item.name} />
+                  ) : (
+                    <div className="cart-placeholder">{item.name.charAt(0)}</div>
+                  )}
                 </div>
 
-                <button
-                  className="remove-btn"
-                  onClick={() => removeFromCart(item.id)}
-                >
-                  Remove item
-                </button>
+                <div className="cart-details">
+                  <p className="product-category">{item.category}</p>
+                  <h3>{item.name}</h3>
+                  <p className="cart-item-price">₹{item.price}</p>
+                  <p>Size: {item.size}</p>
+                  <p>Color: {item.color}</p>
+
+                  <p className="cart-stock-text">
+                    Stock: {stock > 0 ? `${stock} available` : 'Out of stock'}
+                  </p>
+
+                  <div className="quantity-controls">
+                    <button onClick={() => decreaseQuantity(item.id)}>-</button>
+
+                    <span>{item.quantity}</span>
+
+                    <button
+                      onClick={() => handleIncrease(item.id)}
+                      disabled={reachedMaxStock}
+                      className={reachedMaxStock ? 'quantity-disabled' : ''}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {reachedMaxStock && (
+                    <p className="stock-limit-text">
+                      Maximum available stock selected
+                    </p>
+                  )}
+
+                  <button
+                    className="remove-btn"
+                    onClick={() => removeFromCart(item.id)}
+                  >
+                    Remove item
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="cart-summary">

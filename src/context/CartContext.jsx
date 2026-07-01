@@ -13,19 +13,44 @@ export function CartProvider({ children }) {
   }, [cartItems]);
 
   function addToCart(product) {
+    const stock = Number(product.stock) || 0;
+
+    if (stock <= 0) {
+      return {
+        success: false,
+        message: 'This product is out of stock.',
+      };
+    }
+
+    let result = {
+      success: true,
+      message: 'Added to cart ✅',
+    };
+
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
 
       if (existingItem) {
+        if (existingItem.quantity >= stock) {
+          result = {
+            success: false,
+            message: `Only ${stock} item(s) available in stock.`,
+          };
+
+          return prevItems;
+        }
+
         return prevItems.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + 1, stock }
             : item
         );
       }
 
-      return [...prevItems, { ...product, quantity: 1 }];
+      return [...prevItems, { ...product, stock, quantity: 1 }];
     });
+
+    return result;
   }
 
   function removeFromCart(productId) {
@@ -35,13 +60,31 @@ export function CartProvider({ children }) {
   }
 
   function increaseQuantity(productId) {
+    let result = {
+      success: true,
+      message: '',
+    };
+
     setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
+      prevItems.map((item) => {
+        if (item.id !== productId) return item;
+
+        const stock = Number(item.stock) || 0;
+
+        if (item.quantity >= stock) {
+          result = {
+            success: false,
+            message: `Only ${stock} item(s) available in stock.`,
+          };
+
+          return item;
+        }
+
+        return { ...item, quantity: item.quantity + 1 };
+      })
     );
+
+    return result;
   }
 
   function decreaseQuantity(productId) {

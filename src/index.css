@@ -2096,3 +2096,32 @@ body {
     grid-template-columns: 1fr;
   }
 }
+/* CART STOCK LIMIT */
+.cart-warning {
+  background: #fff1f1;
+  color: var(--danger);
+  border: 1px solid #ffd1d1;
+  padding: 14px 18px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  font-weight: 900;
+}
+
+.cart-stock-text {
+  margin-top: 8px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.stock-limit-text {
+  margin: 8px 0 12px;
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.quantity-controls button:disabled,
+.quantity-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

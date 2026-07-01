@@ -106,14 +106,14 @@ function ProductDetails() {
   }
 
   function handleAddToCart() {
-    addToCart(product);
-    setAddedMessage('Added to cart ✅');
+  const result = addToCart(product);
 
-    setTimeout(() => {
-      setAddedMessage('');
-    }, 2000);
-  }
+  setAddedMessage(result.message);
 
+  setTimeout(() => {
+    setAddedMessage('');
+  }, 2000);
+}
   if (loading) {
     return <p>Loading product...</p>;
   }
