@@ -36,6 +36,29 @@ function AdminProducts() {
     }
   }
 
+  function getStockStatus(stockValue) {
+    const stock = Number(stockValue);
+
+    if (stock <= 0) {
+      return {
+        text: 'Out of Stock',
+        className: 'admin-stock-badge admin-out-stock',
+      };
+    }
+
+    if (stock <= 5) {
+      return {
+        text: 'Low Stock',
+        className: 'admin-stock-badge admin-low-stock',
+      };
+    }
+
+    return {
+      text: 'In Stock',
+      className: 'admin-stock-badge admin-in-stock',
+    };
+  }
+
   function handleChange(e) {
     const { name, value } = e.target;
 
@@ -192,10 +215,41 @@ function AdminProducts() {
     fetchProducts();
   }
 
+  const lowStockCount = products.filter(
+    (product) => Number(product.stock) > 0 && Number(product.stock) <= 5
+  ).length;
+
+  const outOfStockCount = products.filter(
+    (product) => Number(product.stock) <= 0
+  ).length;
+
   return (
     <section>
-      <p className="tagline">Admin Panel</p>
-      <h2>Manage Products</h2>
+      <div className="products-hero">
+        <p className="tagline">Admin Panel</p>
+        <h2>Manage Products</h2>
+        <p>Add, edit, delete, and monitor product stock status.</p>
+      </div>
+
+      <div className="admin-stock-summary">
+        <div>
+          <span>👗</span>
+          <p>Total Products</p>
+          <h3>{products.length}</h3>
+        </div>
+
+        <div>
+          <span>⚠️</span>
+          <p>Low Stock</p>
+          <h3>{lowStockCount}</h3>
+        </div>
+
+        <div>
+          <span>🚫</span>
+          <p>Out of Stock</p>
+          <h3>{outOfStockCount}</h3>
+        </div>
+      </div>
 
       <div className="admin-products-layout">
         <form className="admin-product-form" onSubmit={handleSubmit}>
@@ -288,45 +342,57 @@ function AdminProducts() {
         <div className="admin-product-list">
           <h3>All Products</h3>
 
-          {products.map((product) => (
-            <div className="admin-product-item" key={product.id}>
-              <div className="admin-product-left">
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="admin-product-thumb"
-                  />
-                ) : (
-                  <div className="admin-product-thumb placeholder-thumb">
-                    {product.name.charAt(0)}
-                  </div>
-                )}
+          {products.map((product) => {
+            const stockStatus = getStockStatus(product.stock);
 
-                <div>
-                  <h4>{product.name}</h4>
-                  <p>₹{product.price} • {product.category}</p>
-                  <p>Stock: {product.stock}</p>
+            return (
+              <div className="admin-product-item" key={product.id}>
+                <div className="admin-product-left">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="admin-product-thumb"
+                    />
+                  ) : (
+                    <div className="admin-product-thumb placeholder-thumb">
+                      {product.name.charAt(0)}
+                    </div>
+                  )}
+
+                  <div>
+                    <h4>{product.name}</h4>
+                    <p>
+                      ₹{product.price} • {product.category}
+                    </p>
+
+                    <div className="admin-product-stock-row">
+                      <p>Stock: {product.stock}</p>
+                      <span className={stockStatus.className}>
+                        {stockStatus.text}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-actions">
+                  <button
+                    className="edit-btn"
+                    onClick={() => handleEdit(product)}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleDelete(product.id)}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
-
-              <div className="admin-actions">
-                <button
-                  className="edit-btn"
-                  onClick={() => handleEdit(product)}
-                >
-                  Edit
-                </button>
-
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDelete(product.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
