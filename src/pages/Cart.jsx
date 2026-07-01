@@ -14,7 +14,13 @@ function Cart() {
   const [cartMessage, setCartMessage] = useState('');
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+const FREE_DELIVERY_LIMIT = 999;
+const DELIVERY_CHARGE = 50;
 
+const deliveryCharge =
+  totalPrice === 0 || totalPrice >= FREE_DELIVERY_LIMIT ? 0 : DELIVERY_CHARGE;
+
+const finalTotal = totalPrice + deliveryCharge;
   function handleIncrease(productId) {
     const result = increaseQuantity(productId);
 
@@ -125,11 +131,25 @@ function Cart() {
           </div>
 
           <div className="summary-row">
-            <span>Delivery</span>
-            <strong>COD</strong>
-          </div>
+  <span>Delivery</span>
+  <strong>
+    {deliveryCharge === 0 ? 'Free' : `₹${deliveryCharge}`}
+  </strong>
+</div>
 
-          <p className="cart-total">Total: ₹{totalPrice}</p>
+{deliveryCharge > 0 && (
+  <p className="free-delivery-note">
+    Add ₹{FREE_DELIVERY_LIMIT - totalPrice} more for free delivery.
+  </p>
+)}
+
+{deliveryCharge === 0 && totalPrice > 0 && (
+  <p className="free-delivery-success">
+    You got free delivery ✅
+  </p>
+)}
+
+<p className="cart-total">Total: ₹{finalTotal}</p>
 
           <Link to="/checkout" className="primary-btn checkout-btn">
             Proceed to Checkout

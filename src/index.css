@@ -2244,3 +2244,21 @@ body {
   background: #ffe8e8;
   color: #b42318;
 }
+/* DELIVERY CHARGE */
+.free-delivery-note {
+  background: #fff4db;
+  color: #9a5b00;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 800;
+  margin-top: 14px;
+}
+
+.free-delivery-success {
+  background: #e8f8ef;
+  color: #16803c;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 800;
+  margin-top: 14px;
+}

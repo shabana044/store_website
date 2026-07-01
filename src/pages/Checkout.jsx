@@ -94,7 +94,13 @@ useEffect(() => {
       }
     );
   }
+const FREE_DELIVERY_LIMIT = 999;
+const DELIVERY_CHARGE = 50;
 
+const deliveryCharge =
+  totalPrice === 0 || totalPrice >= FREE_DELIVERY_LIMIT ? 0 : DELIVERY_CHARGE;
+
+const finalTotal = totalPrice + deliveryCharge;
   async function handleSubmit(e) {
   e.preventDefault();
 
@@ -165,7 +171,7 @@ useEffect(() => {
     p_payment_method: formData.paymentMethod,
     p_upi_transaction_id:
       formData.paymentMethod === 'UPI' ? formData.upiTransactionId : null,
-    p_total_price: totalPrice,
+    p_total_price: finalTotal,
     p_items: orderItems,
   });
 
@@ -181,7 +187,7 @@ setPlacedOrderDetails({
   orderId,
   customerName: formData.customerName,
   phone: formData.phone,
-  totalPrice,
+  totalPrice: finalTotal,
   paymentMethod: formData.paymentMethod,
 });
 
@@ -213,7 +219,7 @@ clearCart();
 
   const upiPaymentLink = `upi://pay?pa=${SHOP_UPI_ID}&pn=${encodeURIComponent(
     SHOP_NAME
-  )}&am=${totalPrice}&cu=INR`;
+   )}&am=${finalTotal}&cu=INR`;
 const whatsappMessage = placedOrderDetails
   ? `Hi ${SHOP_NAME}, I placed an order.%0A%0AOrder ID: ${placedOrderDetails.orderId}%0ACustomer Name: ${placedOrderDetails.customerName}%0APhone: ${placedOrderDetails.phone}%0ATotal: ₹${placedOrderDetails.totalPrice}%0APayment Method: ${placedOrderDetails.paymentMethod}%0A%0APlease confirm my order.`
   : '';
@@ -492,7 +498,19 @@ const whatsappLink = `https://wa.me/${SHOP_WHATSAPP_NUMBER}?text=${whatsappMessa
               <strong>Pending</strong>
             </div>
 
-            <p className="cart-total">Total: ₹{totalPrice}</p>
+            <div className="summary-row">
+  <span>Subtotal</span>
+  <strong>₹{totalPrice}</strong>
+</div>
+
+<div className="summary-row">
+  <span>Delivery</span>
+  <strong>
+    {deliveryCharge === 0 ? 'Free' : `₹${deliveryCharge}`}
+  </strong>
+</div>
+
+<p className="cart-total">Total: ₹{finalTotal}</p>
           </div>
         </div>
       )}
