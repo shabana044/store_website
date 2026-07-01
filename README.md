@@ -106,3 +106,12 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/shabana044/store_website.git
+## Demo Admin Login
+
+Admin demo access is available for project review.
+
+Email: shabanabasheer04@gmail.com  
+Password: Available on request
+## Preview
+
+![Zayna Dresses Project Preview](public/screenshots/zayna-dresses-preview.png)
