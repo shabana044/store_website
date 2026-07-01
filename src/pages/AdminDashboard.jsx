@@ -7,6 +7,19 @@ function AdminDashboard() {
 
   const [adminEmail, setAdminEmail] = useState('');
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalOrders: 0,
+    pendingOrders: 0,
+    deliveredOrders: 0,
+    cancelledOrders: 0,
+    totalRevenue: 0,
+    lowStockProducts: 0,
+    outOfStockProducts: 0,
+  });
 
   useEffect(() => {
     checkAdmin();
@@ -36,6 +49,66 @@ function AdminDashboard() {
 
     setAdminEmail(user.email);
     setLoading(false);
+    fetchDashboardStats();
+  }
+
+  async function fetchDashboardStats() {
+    setStatsLoading(true);
+    setErrorMessage('');
+
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('id, stock');
+
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('id, total_price, status');
+
+    if (productsError || ordersError) {
+      setErrorMessage(productsError?.message || ordersError?.message);
+      setStatsLoading(false);
+      return;
+    }
+
+    const totalProducts = products.length;
+    const totalOrders = orders.length;
+
+    const pendingOrders = orders.filter(
+      (order) => order.status === 'Pending'
+    ).length;
+
+    const deliveredOrders = orders.filter(
+      (order) => order.status === 'Delivered'
+    ).length;
+
+    const cancelledOrders = orders.filter(
+      (order) => order.status === 'Cancelled'
+    ).length;
+
+    const totalRevenue = orders
+      .filter((order) => order.status !== 'Cancelled')
+      .reduce((total, order) => total + Number(order.total_price || 0), 0);
+
+    const lowStockProducts = products.filter(
+      (product) => Number(product.stock) > 0 && Number(product.stock) <= 5
+    ).length;
+
+    const outOfStockProducts = products.filter(
+      (product) => Number(product.stock) <= 0
+    ).length;
+
+    setStats({
+      totalProducts,
+      totalOrders,
+      pendingOrders,
+      deliveredOrders,
+      cancelledOrders,
+      totalRevenue,
+      lowStockProducts,
+      outOfStockProducts,
+    });
+
+    setStatsLoading(false);
   }
 
   async function handleLogout() {
@@ -53,7 +126,7 @@ function AdminDashboard() {
         <div>
           <p className="tagline">Admin Panel</p>
           <h2>Store Dashboard</h2>
-          <p>Manage your boutique products, orders, and store activity.</p>
+          <p>Track products, orders, revenue, and stock status.</p>
           <p className="admin-email">Logged in as {adminEmail}</p>
         </div>
 
@@ -62,11 +135,70 @@ function AdminDashboard() {
         </button>
       </div>
 
-      <div className="admin-grid">
+      {errorMessage && <p className="error-text">{errorMessage}</p>}
+
+      {statsLoading ? (
+        <p>Loading dashboard stats...</p>
+      ) : (
+        <div className="admin-stats-grid">
+          <div className="admin-stat-card">
+            <span>👗</span>
+            <p>Total Products</p>
+            <h3>{stats.totalProducts}</h3>
+          </div>
+
+          <div className="admin-stat-card">
+            <span>🛍️</span>
+            <p>Total Orders</p>
+            <h3>{stats.totalOrders}</h3>
+          </div>
+
+          <div className="admin-stat-card">
+            <span>⏳</span>
+            <p>Pending Orders</p>
+            <h3>{stats.pendingOrders}</h3>
+          </div>
+
+          <div className="admin-stat-card">
+            <span>✅</span>
+            <p>Delivered Orders</p>
+            <h3>{stats.deliveredOrders}</h3>
+          </div>
+
+          <div className="admin-stat-card">
+            <span>❌</span>
+            <p>Cancelled Orders</p>
+            <h3>{stats.cancelledOrders}</h3>
+          </div>
+
+          <div className="admin-stat-card">
+            <span>💰</span>
+            <p>Total Revenue</p>
+            <h3>₹{stats.totalRevenue}</h3>
+          </div>
+
+          <div className="admin-stat-card warning-stat">
+            <span>⚠️</span>
+            <p>Low Stock</p>
+            <h3>{stats.lowStockProducts}</h3>
+          </div>
+
+          <div className="admin-stat-card danger-stat">
+            <span>🚫</span>
+            <p>Out of Stock</p>
+            <h3>{stats.outOfStockProducts}</h3>
+          </div>
+        </div>
+      )}
+
+      <div className="admin-grid dashboard-actions-grid">
         <div className="admin-card dashboard-card">
           <div className="admin-card-icon">👗</div>
           <h3>Products</h3>
-          <p>Add new dresses, update product details, upload images, and delete old products.</p>
+          <p>
+            Add new dresses, update product details, upload images, and delete
+            old products.
+          </p>
 
           <Link to="/admin/products" className="small-btn admin-card-btn">
             Manage Products
@@ -76,7 +208,10 @@ function AdminDashboard() {
         <div className="admin-card dashboard-card">
           <div className="admin-card-icon">🛍️</div>
           <h3>Orders</h3>
-          <p>View customer orders, check ordered items, and update delivery status.</p>
+          <p>
+            View customer orders, check delivery details, filter orders, and
+            update order status.
+          </p>
 
           <Link to="/admin/orders" className="small-btn admin-card-btn">
             View Orders
@@ -84,9 +219,25 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-card dashboard-card">
+          <div className="admin-card-icon">⚠️</div>
+          <h3>Stock Check</h3>
+          <p>
+            Check low-stock and out-of-stock products so you can restock dresses
+            on time.
+          </p>
+
+          <Link to="/admin/products" className="small-btn admin-card-btn">
+            Check Stock
+          </Link>
+        </div>
+
+        <div className="admin-card dashboard-card">
           <div className="admin-card-icon">✨</div>
           <h3>Store Status</h3>
-          <p>Your boutique is connected with Supabase database, auth, and storage.</p>
+          <p>
+            Your boutique is connected with Supabase database, auth, storage,
+            and Vercel hosting.
+          </p>
 
           <Link to="/products" className="small-btn admin-card-btn">
             View Store
