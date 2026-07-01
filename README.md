@@ -11,6 +11,17 @@ https://store-website-beige.vercel.app
 
 https://github.com/shabana044/store_website
 
+## Preview
+
+![Zayna Dresses Project Preview](public/screenshots/zayna-dresses-preview.png)
+
+## Demo Admin Login
+
+Admin demo access is available for project review.
+
+Email: admin@test.com  
+Password: Available on request
+
 ## Features
 
 ### Customer Features
@@ -106,12 +117,58 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/shabana044/store_website.git
-## Demo Admin Login
+```
 
-Admin demo access is available for project review.
+Go to the project folder:
 
-Email: shabanabasheer04@gmail.com  
-Password: Available on request
-## Preview
+```bash
+cd store_website
+```
 
-![Zayna Dresses Project Preview](public/screenshots/zayna-dresses-preview.png)
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env` file if you do not already have one, and add your Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+Run the project locally:
+
+```bash
+npm run dev
+```
+
+Build the project:
+
+```bash
+npm run build
+```
+
+## Deployment
+
+The project is deployed using Vercel.
+
+For React Router support on Vercel, the project includes a `vercel.json` file to handle direct route access.
+
+## Future Improvements
+
+- Add real online payment gateway integration
+- Add email order confirmation
+- Add product image gallery
+- Add coupon code system
+- Add admin sales charts
+- Add invoice download
+- Add customer profile editing
+- Add product review moderation for admin
+
+## Author
+
+Shabana P  
+B.Tech Information Technology Student  
+Cochin University of Science and Technology
